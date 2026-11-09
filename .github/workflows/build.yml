@@ -9,18 +9,29 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
+
+    # 👇 核心修复：强制使用 Gradle 8.7，避开 Gradle 9 的依赖锁定报错 👇
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '8.7'
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
     - name: Build Release APK
       run: gradle assembleRelease
+
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: PaperWallet-Signed-APK
+        name: PaperWallet-APK
         path: app/build/outputs/apk/release/app-release.apk
