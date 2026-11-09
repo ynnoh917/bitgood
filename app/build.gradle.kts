@@ -36,10 +36,10 @@ android {
     }
     
     // 👇 新增：排除冲突的 BouncyCastle 模块 👇
-    configurations {
-        all*.exclude(group = "org.bouncycastle", module = "bcprov-jdk15to18")
-        all*.exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
-    }
+    configurations.all {
+    exclude(group = "org.bouncycastle", module = "bcprov-jdk15to18")
+    exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
+}
     
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
