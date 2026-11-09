@@ -15,24 +15,16 @@ android {
         versionName = "1.0"
     }
 
-    signingConfigs {
-        create("release") {
-            storeFile = file("bit.keystore")
-            storePassword = "0"
-            keyAlias = "hellobit"
-            keyPassword = "0"
-        }
-    }
+    // ❌ 已移除：signingConfigs 块，不再使用你的 bit.keystore
 
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("release")
+            // 让 Release 构建也使用自动生成的 Debug 签名，方便直接安装测试
+            signingConfig = signingConfigs.getByName("debug")
         }
-        debug {
-            signingConfig = signingConfigs.getByName("release")
-        }
+        // debug 构建类型无需额外配置，Gradle 默认会自动处理签名
     }
 
     compileOptions {
@@ -60,6 +52,18 @@ android {
     }
 }
 
+// 👇 核心修复：在全局范围内强制统一 BouncyCastle 的模块和版本 👇
+// 这是解决重复类冲突最彻底、最官方的方式
+configurations.all {
+    resolutionStrategy {
+        dependencySubstitution {
+            // 将所有旧版或冲突的模块，统一替换为 bcprov-jdk18on:1.78
+            substitute(module("org.bouncycastle:bcprov-jdk15to18")).using(module("org.bouncycastle:bcprov-jdk18on:1.78"))
+            substitute(module("org.bouncycastle:bcprov-jdk15on")).using(module("org.bouncycastle:bcprov-jdk18on:1.78"))
+        }
+    }
+}
+
 dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
@@ -72,22 +76,8 @@ dependencies {
 
     implementation("com.google.zxing:core:3.5.2")
 
-    // 依赖声明时直接排除冲突模块（保留此写法）
-    implementation("org.bitcoinj:bitcoinj-core:0.16.3") {
-        exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
-    }
-    implementation("org.web3j:crypto:4.10.3") {
-        exclude(group = "org.bouncycastle", module = "bcprov-jdk15to18")
-    }
+    // 依赖声明时无需再手动 exclude，上面的 dependencySubstitution 会统一处理
+    implementation("org.bitcoinj:bitcoinj-core:0.16.3")
+    implementation("org.web3j:crypto:4.10.3")
     implementation("org.bouncycastle:bcprov-jdk18on:1.78")
-}
-
-// 👇 关键修复：在评估结束后，强制统一 BouncyCastle 版本 👇
-afterEvaluate {
-    configurations.configureEach {
-        resolutionStrategy {
-            force("org.bouncycastle:bcprov-jdk18on:1.78")
-            force("org.bouncycastle:bcprov-jdk15to18:1.78")
-        }
-    }
 }
