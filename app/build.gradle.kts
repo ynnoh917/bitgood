@@ -15,10 +15,9 @@ android {
         versionName = "1.0"
     }
 
-    // 👇 你的证书配置 👇
     signingConfigs {
         create("release") {
-            storeFile = file("bit.keystore") // 放在 app/ 目录下
+            storeFile = file("bit.keystore")
             storePassword = "0"
             keyAlias = "hellobit"
             keyPassword = "0"
@@ -32,8 +31,14 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
         debug {
-            signingConfig = signingConfigs.getByName("release") // Debug 也使用此签名
+            signingConfig = signingConfigs.getByName("release")
         }
+    }
+    
+    // 👇 新增：排除冲突的 BouncyCastle 模块 👇
+    configurations {
+        all*.exclude(group = "org.bouncycastle", module = "bcprov-jdk15to18")
+        all*.exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
     }
     
     compileOptions {
@@ -74,5 +79,6 @@ dependencies {
     implementation("com.google.zxing:core:3.5.2")
     implementation("org.bitcoinj:bitcoinj-core:0.16.2")
     implementation("org.web3j:crypto:4.10.3")
-    implementation("org.bouncycastle:bcprov-jdk18on:1.77")
+    // 👇 已移除手动添加的 BouncyCastle 依赖 👇
+    // implementation("org.bouncycastle:bcprov-jdk18on:1.77") 
 }
