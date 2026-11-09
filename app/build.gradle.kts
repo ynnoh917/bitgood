@@ -15,7 +15,6 @@ android {
         versionName = "1.0"
     }
 
-    // 使用自动生成的 Debug 签名，无需额外配置
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -49,18 +48,6 @@ android {
     }
 }
 
-// 👇 核心修复：在 dependencies 声明之前，全局注册依赖替换规则 👇
-configurations.configureEach {
-    resolutionStrategy {
-        dependencySubstitution {
-            substitute(module("org.bouncycastle:bcprov-jdk15to18"))
-                .using(module("org.bouncycastle:bcprov-jdk18on:1.78"))
-            substitute(module("org.bouncycastle:bcprov-jdk15on"))
-                .using(module("org.bouncycastle:bcprov-jdk18on:1.78"))
-        }
-    }
-}
-
 dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
@@ -73,8 +60,13 @@ dependencies {
 
     implementation("com.google.zxing:core:3.5.2")
 
-    // 无需再手动 exclude，上面的替换规则会统一处理
-    implementation("org.bitcoinj:bitcoinj-core:0.16.3")
-    implementation("org.web3j:crypto:4.10.3")
+    // 在依赖声明处直接排除旧版 BouncyCastle
+    implementation("org.bitcoinj:bitcoinj-core:0.16.3") {
+        exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
+    }
+    implementation("org.web3j:crypto:4.10.3") {
+        exclude(group = "org.bouncycastle", module = "bcprov-jdk15to18")
+    }
+    // 统一引入新版
     implementation("org.bouncycastle:bcprov-jdk18on:1.78")
 }
