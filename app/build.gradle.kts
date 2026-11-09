@@ -48,6 +48,12 @@ android {
     }
 }
 
+// 👇 核心修复：在全局范围内，强制踢掉所有旧版的 BouncyCastle 👇
+configurations.all {
+    exclude(group = "org.bouncycastle", module = "bcprov-jdk15to18")
+    exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
+}
+
 dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
@@ -60,13 +66,9 @@ dependencies {
 
     implementation("com.google.zxing:core:3.5.2")
 
-    // 在依赖声明处直接排除旧版 BouncyCastle
-    implementation("org.bitcoinj:bitcoinj-core:0.16.3") {
-        exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
-    }
-    implementation("org.web3j:crypto:4.10.3") {
-        exclude(group = "org.bouncycastle", module = "bcprov-jdk15to18")
-    }
-    // 统一引入新版
+    implementation("org.bitcoinj:bitcoinj-core:0.16.3")
+    implementation("org.web3j:crypto:4.10.3")
+    
+    // 依赖中只保留这一版最新的 BouncyCastle
     implementation("org.bouncycastle:bcprov-jdk18on:1.78")
 }
